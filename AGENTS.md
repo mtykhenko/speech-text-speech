@@ -1,7 +1,6 @@
-# Speech-to-Text & Text-to-Speech Experiment Platform
+# Speech-to-Text & Text-to-Speech Platform - Technical Documentation
 
-## Project Overview
-A containerized web application for experimenting with various speech-to-text (STT) and text-to-speech (TTS) models, including voice cloning capabilities.
+This document contains technical architecture, implementation details, and development guidelines for AI agents and developers working on this project.
 
 ## Backend Workload Analysis & Technology Selection
 
@@ -110,39 +109,8 @@ Python with FastAPI is the optimal choice because:
 - Single-language stack reduces complexity and deployment overhead
 - Better long-term maintainability and feature extensibility
 
-## Core Features
+## System Architecture
 
-### 1. Speech-to-Text (STT)
-- **Live Recording**: Browser-based audio recording with real-time transcription
-- **File Upload**: Support for common audio formats (MP3, WAV, M4A, FLAC)
-- **Transcription Display**: Show transcribed text with timestamps
-- **Export Options**: Download transcriptions as TXT, JSON, or SRT
-
-### 2. Text-to-Speech (TTS)
-- **Text Input**: Direct text entry with character count
-- **Document Upload**: Support for TXT, PDF, DOCX formats
-- **Audio Generation**: Convert text to speech with selected voice
-- **Audio Playback**: In-browser audio player with download option
-
-### 3. Voice Cloning
-- **Voice Sample Recording**: Record voice samples directly in browser
-- **Voice Sample Upload**: Upload existing audio files
-- **Voice Profile Management**: Save and manage multiple voice profiles
-- **Voice Selection**: Choose from uploaded voices for TTS generation
-
-### 4. Model Management
-- **Model Switching**: Easy configuration to swap between different providers
-- **Supported Providers**:
-  - OpenAI (Whisper for STT, TTS API)
-  - Google Cloud (Speech-to-Text, Text-to-Speech)
-  - Azure Cognitive Services
-  - ElevenLabs (TTS with voice cloning)
-  - Local Models (Whisper.cpp, Coqui TTS, Ollama)
-  - Hugging Face models
-
-## Architecture
-
-### System Architecture
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                         Web UI (React)                       │
@@ -174,9 +142,9 @@ Python with FastAPI is the optimal choice because:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Technology Stack
+## Technology Stack
 
-#### Frontend
+### Frontend
 - **Framework**: React 18+ with TypeScript
 - **UI Library**: Material-UI (MUI) or Tailwind CSS + shadcn/ui
 - **Audio Recording**: RecordRTC or MediaRecorder API
@@ -185,7 +153,7 @@ Python with FastAPI is the optimal choice because:
 - **State Management**: Zustand or React Context
 - **HTTP Client**: Axios
 
-#### Backend
+### Backend
 - **Framework**: FastAPI (Python 3.11+)
 - **Async Support**: asyncio, aiohttp
 - **File Processing**: 
@@ -200,7 +168,7 @@ Python with FastAPI is the optimal choice because:
   - Faster-Whisper (local STT)
   - Coqui TTS (local TTS)
 
-#### Storage
+### Storage
 - **Database**: PostgreSQL (for metadata, configs, voice profiles)
 - **Object Storage**: SeaweedFS (S3-compatible, Apache 2.0) for audio files
   - **Why SeaweedFS**: Replaced MinIO due to AGPLv3 license change. SeaweedFS offers true open-source (Apache 2.0), excellent performance for large audio files, simple architecture, and full S3 API compatibility
@@ -208,7 +176,7 @@ Python with FastAPI is the optimal choice because:
 - **Temporary Storage**: Filesystem-based (for temporary files during processing)
   - **Note**: Redis cache moved to production considerations (unnecessary for single-user, non-production use)
 
-#### Infrastructure
+### Infrastructure
 - **Containerization**: Docker + Docker Compose
 - **Reverse Proxy**: Nginx
 - **Orchestration**: Kubernetes (optional, for production)
@@ -220,7 +188,7 @@ speech-text-speech/
 ├── docker-compose.yml
 ├── .env.example
 ├── README.md
-├── PROJECT_PLAN.md
+├── AGENTS.md
 │
 ├── frontend/
 │   ├── Dockerfile
@@ -381,6 +349,79 @@ speech-text-speech/
 - [ ] Add monitoring and logging
 - [ ] Perform security audit
 
+## API Endpoints
+
+### Speech-to-Text
+- `POST /api/v1/stt/transcribe` - Transcribe uploaded audio file
+- `POST /api/v1/stt/transcribe-stream` - Real-time transcription (WebSocket)
+- `GET /api/v1/stt/transcriptions/{id}` - Get transcription by ID
+- `GET /api/v1/stt/models` - List available STT models
+
+### Text-to-Speech
+- `POST /api/v1/tts/generate` - Generate speech from text
+- `POST /api/v1/tts/generate-document` - Generate speech from document
+- `GET /api/v1/tts/audio/{id}` - Get generated audio file
+- `GET /api/v1/tts/models` - List available TTS models
+
+### Voice Cloning
+- `POST /api/v1/voice/profiles` - Create voice profile
+- `GET /api/v1/voice/profiles` - List voice profiles
+- `GET /api/v1/voice/profiles/{id}` - Get voice profile
+- `PUT /api/v1/voice/profiles/{id}` - Update voice profile
+- `DELETE /api/v1/voice/profiles/{id}` - Delete voice profile
+- `POST /api/v1/voice/profiles/{id}/samples` - Add voice sample
+
+### Configuration
+- `GET /api/v1/config/models` - Get current model configuration
+- `PUT /api/v1/config/models` - Update model configuration
+- `POST /api/v1/config/test-model` - Test model connection
+
+## Model Adapter Interface
+
+### Base Adapter Class
+```python
+from abc import ABC, abstractmethod
+from typing import Optional, Dict, Any
+
+class BaseSTTAdapter(ABC):
+    @abstractmethod
+    async def transcribe(
+        self,
+        audio_file: bytes,
+        language: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Transcribe audio to text.
+        
+        Returns:
+            {
+                "text": str,
+                "language": str,
+                "confidence": float,
+                "segments": List[Dict],
+                "metadata": Dict
+            }
+        """
+        pass
+
+class BaseTTSAdapter(ABC):
+    @abstractmethod
+    async def generate_speech(
+        self,
+        text: str,
+        voice_id: Optional[str] = None,
+        **kwargs
+    ) -> bytes:
+        """
+        Generate speech from text.
+        
+        Returns:
+            Audio file bytes
+        """
+        pass
+```
+
 ## Configuration System
 
 ### Model Configuration Format
@@ -442,238 +483,6 @@ voice_cloning:
       max_samples: 25
 ```
 
-## Docker Compose Setup
-
-### Services Configuration
-```yaml
-version: '3.8'
-
-services:
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - VITE_API_URL=http://localhost:8000
-    depends_on:
-      - backend
-
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://user:pass@postgres:5432/stt_tts
-      - S3_ENDPOINT=seaweedfs:8333
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-    volumes:
-      - ./config:/app/config
-      - ./models:/app/models
-      - ./tmp:/app/tmp
-    depends_on:
-      - postgres
-      - seaweedfs
-
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=stt_tts
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  seaweedfs:
-    image: chrislusf/seaweedfs:latest
-    command: 'server -s3 -dir=/data -s3.port=8333'
-    ports:
-      - "9333:9333"  # Master port
-      - "8333:8333"  # S3 API port
-      - "8080:8080"  # Volume port
-      - "18080:18080" # Filer port
-    environment:
-      - WEED_MASTER_VOLUME_SIZE_LIMIT_MB=1024
-    volumes:
-      - seaweedfs_data:/data
-
-  nginx:
-    build: ./nginx
-    ports:
-      - "80:80"
-    depends_on:
-      - frontend
-      - backend
-
-  # Optional: Local Ollama for TTS experiments
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-
-volumes:
-  postgres_data:
-  seaweedfs_data:
-  ollama_data:
-```
-
-## API Endpoints
-
-### Speech-to-Text
-- `POST /api/v1/stt/transcribe` - Transcribe uploaded audio file
-- `POST /api/v1/stt/transcribe-stream` - Real-time transcription (WebSocket)
-- `GET /api/v1/stt/transcriptions/{id}` - Get transcription by ID
-- `GET /api/v1/stt/models` - List available STT models
-
-### Text-to-Speech
-- `POST /api/v1/tts/generate` - Generate speech from text
-- `POST /api/v1/tts/generate-document` - Generate speech from document
-- `GET /api/v1/tts/audio/{id}` - Get generated audio file
-- `GET /api/v1/tts/models` - List available TTS models
-
-### Voice Cloning
-- `POST /api/v1/voice/profiles` - Create voice profile
-- `GET /api/v1/voice/profiles` - List voice profiles
-- `GET /api/v1/voice/profiles/{id}` - Get voice profile
-- `PUT /api/v1/voice/profiles/{id}` - Update voice profile
-- `DELETE /api/v1/voice/profiles/{id}` - Delete voice profile
-- `POST /api/v1/voice/profiles/{id}/samples` - Add voice sample
-
-### Configuration
-- `GET /api/v1/config/models` - Get current model configuration
-- `PUT /api/v1/config/models` - Update model configuration
-- `POST /api/v1/config/test-model` - Test model connection
-
-## Deployment Guide
-
-### Quick Start
-```bash
-# Clone repository
-git clone <repo-url>
-cd speech-text-speech
-
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your API keys
-nano .env
-
-# Start all services
-docker-compose up -d
-
-# Access the application
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
-# SeaweedFS Master: http://localhost:9333
-# SeaweedFS Filer: http://localhost:18080
-```
-
-### Environment Variables
-```bash
-# API Keys
-OPENAI_API_KEY=sk-...
-ELEVENLABS_API_KEY=...
-GOOGLE_CREDENTIALS_PATH=/path/to/credentials.json
-AZURE_SPEECH_KEY=...
-AZURE_SPEECH_REGION=...
-
-# Storage (SeaweedFS S3-compatible)
-S3_ENDPOINT=http://seaweedfs:8333
-S3_ACCESS_KEY=any_access_key
-S3_SECRET_KEY=any_secret_key
-
-# Database
-DATABASE_URL=postgresql://user:pass@postgres:5432/stt_tts
-
-# Application
-DEBUG=false
-LOG_LEVEL=info
-MAX_FILE_SIZE=100MB
-```
-
-### Production Considerations
-1. **Security**:
-   - Use secrets management (e.g., Docker secrets, Vault)
-   - Enable HTTPS with SSL certificates
-   - Implement authentication and authorization
-   - Add rate limiting and DDoS protection
-
-2. **Scalability**:
-   - Use Kubernetes for orchestration
-   - Implement horizontal pod autoscaling
-   - Add load balancing
-   - Use CDN for static assets
-
-3. **Caching & Session Management** (Multi-user Production):
-   - **Add Redis** for distributed caching and session management
-   - **Use cases**:
-     - Session storage for multi-user authentication
-     - Caching API responses to reduce external API costs
-     - Rate limiting across multiple backend instances
-     - Temporary file metadata for distributed systems
-     - Job queue for background processing
-   - **Not needed for single-user development**: Filesystem-based temporary storage is sufficient
-   - **Configuration**: `REDIS_URL=redis://redis:6379`
-
-4. **Monitoring**:
-   - Add Prometheus for metrics
-   - Use Grafana for dashboards
-   - Implement distributed tracing (Jaeger)
-   - Set up log aggregation (ELK stack)
-
-5. **Backup**:
-   - Regular database backups
-   - Object storage replication
-   - Configuration versioning
-
-## Model Adapter Interface
-
-### Base Adapter Class
-```python
-from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
-
-class BaseSTTAdapter(ABC):
-    @abstractmethod
-    async def transcribe(
-        self,
-        audio_file: bytes,
-        language: Optional[str] = None,
-        **kwargs
-    ) -> Dict[str, Any]:
-        """
-        Transcribe audio to text.
-        
-        Returns:
-            {
-                "text": str,
-                "language": str,
-                "confidence": float,
-                "segments": List[Dict],
-                "metadata": Dict
-            }
-        """
-        pass
-
-class BaseTTSAdapter(ABC):
-    @abstractmethod
-    async def generate_speech(
-        self,
-        text: str,
-        voice_id: Optional[str] = None,
-        **kwargs
-    ) -> bytes:
-        """
-        Generate speech from text.
-        
-        Returns:
-            Audio file bytes
-        """
-        pass
-```
-
 ## Testing Strategy
 
 ### Unit Tests
@@ -717,53 +526,89 @@ class BaseTTSAdapter(ABC):
    - Graceful error handling
    - Automatic retry for transient failures
 
+## Production Considerations
+
+### Security
+- Use secrets management (e.g., Docker secrets, Vault)
+- Enable HTTPS with SSL certificates
+- Implement authentication and authorization
+- Add rate limiting and DDoS protection
+
+### Scalability
+- Use Kubernetes for orchestration
+- Implement horizontal pod autoscaling
+- Add load balancing
+- Use CDN for static assets
+
+### Caching & Session Management (Multi-user Production)
+- **Add Redis** for distributed caching and session management
+- **Use cases**:
+  - Session storage for multi-user authentication
+  - Caching API responses to reduce external API costs
+  - Rate limiting across multiple backend instances
+  - Temporary file metadata for distributed systems
+  - Job queue for background processing
+- **Not needed for single-user development**: Filesystem-based temporary storage is sufficient
+- **Configuration**: `REDIS_URL=redis://redis:6379`
+
+### Monitoring
+- Add Prometheus for metrics
+- Use Grafana for dashboards
+- Implement distributed tracing (Jaeger)
+- Set up log aggregation (ELK stack)
+
+### Backup
+- Regular database backups
+- Object storage replication
+- Configuration versioning
+
 ## Future Enhancements
 
-1. **Advanced Features**:
-   - Real-time translation
-   - Speaker diarization
-   - Emotion detection in speech
-   - Background noise removal
-   - Audio quality enhancement
+### Advanced Features
+- Real-time translation
+- Speaker diarization
+- Emotion detection in speech
+- Background noise removal
+- Audio quality enhancement
 
-2. **Advanced Document Processing** (Docling Integration):
-   - **Upgrade from PyPDF2/python-docx to Docling** for enhanced document understanding
-   - **Benefits**:
-     - Multi-format support (PDF, DOCX, PPTX, XLSX, HTML, images, audio)
-     - Advanced PDF understanding (layout analysis, table structure, reading order)
-     - AI-ready structured output (optimized for LLM consumption)
-     - OCR capabilities for scanned documents
-     - Unified document representation across formats
-     - Export to multiple formats (Markdown, HTML, JSON)
-   - **Use Cases**:
-     - Better text extraction from complex PDFs with tables and multi-column layouts
-     - Preserve document structure for context-aware TTS
-     - Extract structured data for future AI features
-     - Handle scanned documents with OCR
-   - **Implementation Considerations**:
-     - MIT license (commercial-friendly)
-     - Requires Python 3.10+
-     - Active development (56.5k stars, enterprise backing)
-     - Some features in beta (structured extraction)
-     - Test thoroughly with target document types before production use
+### Advanced Document Processing (Docling Integration)
+- **Upgrade from PyPDF2/python-docx to Docling** for enhanced document understanding
+- **Benefits**:
+  - Multi-format support (PDF, DOCX, PPTX, XLSX, HTML, images, audio)
+  - Advanced PDF understanding (layout analysis, table structure, reading order)
+  - AI-ready structured output (optimized for LLM consumption)
+  - OCR capabilities for scanned documents
+  - Unified document representation across formats
+  - Export to multiple formats (Markdown, HTML, JSON)
+- **Use Cases**:
+  - Better text extraction from complex PDFs with tables and multi-column layouts
+  - Preserve document structure for context-aware TTS
+  - Extract structured data for future AI features
+  - Handle scanned documents with OCR
+- **Implementation Considerations**:
+  - MIT license (commercial-friendly)
+  - Requires Python 3.10+
+  - Active development (56.5k stars, enterprise backing)
+  - Some features in beta (structured extraction)
+  - Test thoroughly with target document types before production use
 
-2. **Collaboration**:
-   - Multi-user support
-   - Shared voice profiles
-   - Project workspaces
-   - Version history
+### Collaboration
+- Multi-user support
+- Shared voice profiles
+- Project workspaces
+- Version history
 
-3. **Analytics**:
-   - Usage statistics
-   - Cost tracking per model
-   - Quality metrics comparison
-   - A/B testing framework
+### Analytics
+- Usage statistics
+- Cost tracking per model
+- Quality metrics comparison
+- A/B testing framework
 
-4. **Integrations**:
-   - Webhook support
-   - REST API for external apps
-   - CLI tool
-   - Browser extension
+### Integrations
+- Webhook support
+- REST API for external apps
+- CLI tool
+- Browser extension
 
 ## Resources & References
 
@@ -781,10 +626,3 @@ class BaseTTSAdapter(ABC):
 - [React](https://react.dev/)
 - [Docker](https://docs.docker.com/)
 - [SeaweedFS](https://github.com/seaweedfs/seaweedfs/wiki)
-
-## License & Contributing
-
-- Choose appropriate license (MIT, Apache 2.0, etc.)
-- Set up contribution guidelines
-- Create issue templates
-- Add code of conduct
