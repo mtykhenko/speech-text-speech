@@ -97,7 +97,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onTranscriptionComplete, on
 
     try {
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append('audio_file', selectedFile);
       if (provider) formData.append('provider', provider);
       if (language) formData.append('language', language);
       formData.append('response_format', 'verbose_json');
@@ -146,11 +146,12 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onTranscriptionComplete, on
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 space-y-4">
+    <div className="w-full space-y-6">
+      {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold">Upload Audio File</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Upload Audio File</h2>
         <p className="text-gray-600">
-          Upload an audio file to transcribe. Supported formats: {supportedFormats.join(', ')}
+          Upload an audio file to transcribe. Supported formats: <span className="font-medium">{supportedFormats.join(', ')}</span>
         </p>
       </div>
 
@@ -160,17 +161,24 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onTranscriptionComplete, on
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          border-2 border-dashed rounded-lg p-8 text-center transition-colors
-          ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
+          border-2 border-dashed rounded-xl p-8 sm:p-12 text-center transition-all duration-200
+          ${isDragging 
+            ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
+            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+          }
           ${selectedFile ? 'bg-gray-50' : ''}
         `}
       >
         {!selectedFile ? (
-          <div className="space-y-4">
-            <Upload className="w-12 h-12 mx-auto text-gray-400" />
-            <div>
-              <p className="text-lg font-medium">Drop your audio file here</p>
-              <p className="text-sm text-gray-500">or click to browse</p>
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                <Upload className="w-10 h-10 text-blue-600" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-lg font-semibold text-gray-900">Drop your audio file here</p>
+              <p className="text-sm text-gray-500">or click the button below to browse</p>
             </div>
             <input
               type="file"
@@ -181,51 +189,63 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onTranscriptionComplete, on
             />
             <label
               htmlFor="file-input"
-              className="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition-colors"
+              className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg cursor-pointer hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
             >
               Select File
             </label>
+            <p className="text-xs text-gray-500 mt-4">
+              Maximum file size: {maxFileSize / (1024 * 1024)} MB
+            </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <File className="w-12 h-12 mx-auto text-blue-500" />
-            <div>
-              <p className="font-medium">{selectedFile.name}</p>
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                <File className="w-10 h-10 text-green-600" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="font-semibold text-gray-900 text-lg">{selectedFile.name}</p>
               <p className="text-sm text-gray-500">
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>
             <button
               onClick={handleRemoveFile}
-              className="inline-flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              disabled={isUploading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <X className="w-4 h-4" />
-              Remove
+              Remove File
             </button>
           </div>
         )}
       </div>
 
       {/* Options */}
-      {selectedFile && (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Provider (Optional)</label>
+      {selectedFile && !isUploading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Provider <span className="text-gray-400 font-normal">(Optional)</span>
+            </label>
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
             >
               <option value="">Default (OpenAI Whisper)</option>
               <option value="openai-whisper">OpenAI Whisper</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Language (Optional)</label>
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Language <span className="text-gray-400 font-normal">(Optional)</span>
+            </label>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
             >
               <option value="">Auto-detect</option>
               <option value="en">English</option>
@@ -248,43 +268,58 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onTranscriptionComplete, on
           onClick={handleUpload}
           disabled={isUploading}
           className={`
-            w-full py-3 rounded-lg font-medium transition-colors
+            w-full py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-sm
             ${isUploading 
               ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-500 hover:bg-blue-600 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md'
             }
           `}
         >
-          {isUploading ? 'Transcribing...' : 'Transcribe'}
+          {isUploading ? (
+            <span className="flex items-center justify-center gap-3">
+              <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+              Transcribing...
+            </span>
+          ) : (
+            'Start Transcription'
+          )}
         </button>
       )}
 
       {/* Progress Bar */}
       {isUploading && (
-        <div className="space-y-2">
-          <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="space-y-3">
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300 animate-pulse"
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
-          <p className="text-sm text-center text-gray-600">Processing...</p>
+          <p className="text-sm text-center text-gray-600 font-medium">
+            Processing your audio file...
+          </p>
         </div>
       )}
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p>{error}</p>
+        <div className="flex items-start gap-3 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg text-red-700 shadow-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">Error</p>
+            <p className="text-sm">{error}</p>
+          </div>
         </div>
       )}
 
       {/* Success Message */}
       {success && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-          <CheckCircle className="w-5 h-5 flex-shrink-0" />
-          <p>{success}</p>
+        <div className="flex items-start gap-3 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg text-green-700 shadow-sm animate-fadeIn">
+          <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">Success!</p>
+            <p className="text-sm">{success}</p>
+          </div>
         </div>
       )}
     </div>
