@@ -46,7 +46,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   seaweedfs:
     image: chrislusf/seaweedfs:latest
@@ -54,7 +54,7 @@ services:
     ports:
       - "9333:9333"  # Master port
       - "8333:8333"  # S3 API port
-      - "8080:8080"  # Volume port
+      - "8081:8080"  # Volume port (mapped to 8081 to avoid conflict)
       - "18080:18080" # Filer port
     environment:
       - WEED_MASTER_VOLUME_SIZE_LIMIT_MB=1024
@@ -67,7 +67,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - "80:80"
+      - "8888:80"
     depends_on:
       - frontend
       - backend

@@ -2,18 +2,17 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies and uv
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     ffmpeg \
     libsndfile1 \
     curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -LsSf https://astral.sh/uv/install.sh | sh
+    && rm -rf /var/lib/apt/lists/*
 
-# Add uv to PATH
-ENV PATH="/root/.cargo/bin:${PATH}"
+# Install uv via pip (more reliable in Docker)
+RUN pip install --no-cache-dir uv
 
 # Copy project files
 COPY pyproject.toml .
