@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     libsndfile1 \
     curl \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv via pip (more reliable in Docker)
@@ -20,6 +21,10 @@ COPY pyproject.toml .
 # Sync dependencies with uv (creates virtual environment)
 RUN uv sync --no-dev
 
+# Copy entrypoint script first
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Copy application code
 COPY . .
 
@@ -29,5 +34,5 @@ RUN mkdir -p /app/tmp /app/storage
 # Expose port
 EXPOSE 8000
 
-# Run the application using uv's virtual environment
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Use entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]

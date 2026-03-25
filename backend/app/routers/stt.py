@@ -37,7 +37,7 @@ router = APIRouter()
     }
 )
 async def transcribe_audio(
-    file: UploadFile = File(..., description="Audio file to transcribe"),
+    file: UploadFile = File(..., description="Audio file to transcribe", alias="audio_file"),
     provider: Optional[str] = Form(None, description="STT provider to use"),
     language: Optional[str] = Form(None, description="Language code (e.g., 'en', 'es')"),
     prompt: Optional[str] = Form(None, description="Optional text to guide the model"),

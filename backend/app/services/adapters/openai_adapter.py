@@ -65,7 +65,6 @@ class OpenAIWhisperAdapter(BaseSTTAdapter):
             prompt = kwargs.get("prompt")
             temperature = kwargs.get("temperature", 0)
             response_format = kwargs.get("response_format", "verbose_json")
-            timestamp_granularities = kwargs.get("timestamp_granularities", ["segment"])
             
             # Create a file-like object from bytes
             # OpenAI API expects a file with a name
@@ -80,8 +79,7 @@ class OpenAIWhisperAdapter(BaseSTTAdapter):
                 language=lang,
                 prompt=prompt,
                 temperature=temperature,
-                response_format=response_format,
-                timestamp_granularities=timestamp_granularities
+                response_format=response_format
             )
             
             # Parse response based on format
@@ -90,12 +88,21 @@ class OpenAIWhisperAdapter(BaseSTTAdapter):
                 segments = []
                 if hasattr(transcription, 'segments') and transcription.segments:
                     for seg in transcription.segments:
-                        segments.append(TranscriptionSegment(
-                            text=seg.get('text', ''),
-                            start=seg.get('start', 0.0),
-                            end=seg.get('end', 0.0),
-                            confidence=seg.get('avg_logprob')  # OpenAI uses avg_logprob
-                        ))
+                        # Handle both dict and object formats
+                        if isinstance(seg, dict):
+                            segments.append(TranscriptionSegment(
+                                text=seg.get('text', ''),
+                                start=seg.get('start', 0.0),
+                                end=seg.get('end', 0.0),
+                                confidence=seg.get('avg_logprob')
+                            ))
+                        else:
+                            segments.append(TranscriptionSegment(
+                                text=getattr(seg, 'text', ''),
+                                start=getattr(seg, 'start', 0.0),
+                                end=getattr(seg, 'end', 0.0),
+                                confidence=getattr(seg, 'avg_logprob', None)
+                            ))
                 
                 return TranscriptionResult(
                     text=transcription.text,
