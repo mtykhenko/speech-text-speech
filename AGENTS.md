@@ -59,7 +59,6 @@ The backend serves as an **API orchestrator** that coordinates between the front
    - Lightweight libraries for PDF (PyPDF2) and DOCX (python-docx) parsing
    - Simple text extraction for TTS input
    - Efficient handling of large documents
-   - Future upgrade path: Docling for advanced document understanding (see Future Enhancements)
 
 **Node.js Limitations for This Project**:
 
@@ -175,12 +174,10 @@ Python with FastAPI is the optimal choice because:
   - **Why SeaweedFS**: Replaced MinIO due to AGPLv3 license change. SeaweedFS offers true open-source (Apache 2.0), excellent performance for large audio files, simple architecture, and full S3 API compatibility
   - **Alternatives Considered**: Zenko CloudServer (Apache 2.0), Ceph RGW (complex), Garage (AGPLv3), RustFS (not production-ready)
 - **Temporary Storage**: Filesystem-based (for temporary files during processing)
-  - **Note**: Redis cache moved to production considerations (unnecessary for single-user, non-production use)
 
 ### Infrastructure
 - **Containerization**: Docker + Docker Compose
 - **Reverse Proxy**: Nginx
-- **Orchestration**: Kubernetes (optional, for production)
 
 ## Project Structure
 
@@ -266,7 +263,9 @@ speech-text-speech/
 
 ## Implementation Phases
 
-### Phase 1: Foundation (Week 1-2)
+This is a sandbox project designed for step-by-step evolution. Implement features incrementally as needed:
+
+### Phase 1: Foundation
 **Goal**: Set up basic infrastructure and core functionality
 
 - [ ] Initialize project structure
@@ -277,7 +276,7 @@ speech-text-speech/
 - [ ] Set up SeaweedFS for object storage
 - [ ] Configure environment variables and secrets management
 
-### Phase 2: Speech-to-Text (Week 2-3)
+### Phase 2: Speech-to-Text
 **Goal**: Implement STT functionality with multiple providers
 
 - [ ] Implement adapter pattern for STT models
@@ -289,7 +288,7 @@ speech-text-speech/
 - [ ] Add export functionality (TXT, JSON, SRT)
 - [ ] Implement error handling and retry logic
 
-### Phase 3: Text-to-Speech (Week 3-4)
+### Phase 3: Text-to-Speech
 **Goal**: Implement TTS functionality with multiple providers
 
 - [ ] Implement adapter pattern for TTS models
@@ -302,7 +301,7 @@ speech-text-speech/
 - [ ] Add audio download functionality
 - [ ] Implement streaming for long text generation
 
-### Phase 4: Voice Cloning (Week 4-5)
+### Phase 4: Voice Cloning
 **Goal**: Add voice cloning and profile management
 
 - [ ] Design voice profile database schema
@@ -310,23 +309,19 @@ speech-text-speech/
 - [ ] Create voice sample upload endpoint
 - [ ] Add voice profile CRUD operations
 - [ ] Integrate voice cloning with ElevenLabs
-- [ ] Implement local voice cloning (if feasible)
 - [ ] Create voice profile management UI
 - [ ] Add voice selection to TTS workflow
 
-### Phase 5: Model Management (Week 5-6)
+### Phase 5: Model Management
 **Goal**: Easy model switching and configuration
 
 - [ ] Create model configuration schema
 - [ ] Implement model registry system
 - [ ] Add model configuration UI
 - [ ] Create model testing utilities
-- [ ] Add cost estimation for paid APIs
-- [ ] Implement model performance metrics
-- [ ] Add model comparison features
 - [ ] Create documentation for adding new models
 
-### Phase 6: Polish & Optimization (Week 6-7)
+### Phase 6: Polish & Optimization
 **Goal**: Improve UX and performance
 
 - [ ] Add loading states and progress indicators
@@ -335,20 +330,7 @@ speech-text-speech/
 - [ ] Optimize audio file handling
 - [ ] Add comprehensive error messages
 - [ ] Implement rate limiting
-- [ ] Add usage analytics
 - [ ] Create user documentation
-
-### Phase 7: Testing & Deployment (Week 7-8)
-**Goal**: Ensure reliability and ease of deployment
-
-- [ ] Write unit tests for backend services
-- [ ] Write integration tests for API endpoints
-- [ ] Add frontend component tests
-- [ ] Create end-to-end tests
-- [ ] Set up CI/CD pipeline
-- [ ] Create deployment documentation
-- [ ] Add monitoring and logging
-- [ ] Perform security audit
 
 ## API Endpoints
 
@@ -523,11 +505,12 @@ voice_cloning:
    - Responsive design (mobile-friendly)
 
 4. **Reliability**:
-   - 99% uptime
    - Graceful error handling
    - Automatic retry for transient failures
 
 ## Production Considerations
+
+**Note**: This is a sandbox project. The following are recommendations for production deployment if you decide to scale:
 
 ### Security
 - Use secrets management (e.g., Docker secrets, Vault)
@@ -541,15 +524,14 @@ voice_cloning:
 - Add load balancing
 - Use CDN for static assets
 
-### Caching & Session Management (Multi-user Production)
-- **Add Redis** for distributed caching and session management
+### Caching & Session Management
+- **Add Redis** for distributed caching and session management in multi-user environments
 - **Use cases**:
   - Session storage for multi-user authentication
   - Caching API responses to reduce external API costs
   - Rate limiting across multiple backend instances
   - Temporary file metadata for distributed systems
   - Job queue for background processing
-- **Not needed for single-user development**: Filesystem-based temporary storage is sufficient
 - **Configuration**: `REDIS_URL=redis://redis:6379`
 
 ### Monitoring
@@ -563,7 +545,9 @@ voice_cloning:
 - Object storage replication
 - Configuration versioning
 
-## Future Enhancements
+## Future Enhancement Ideas
+
+Potential features to explore as the project evolves:
 
 ### Advanced Features
 - Real-time translation
@@ -572,25 +556,17 @@ voice_cloning:
 - Background noise removal
 - Audio quality enhancement
 
-### Advanced Document Processing (Docling Integration)
-- **Upgrade from PyPDF2/python-docx to Docling** for enhanced document understanding
+### Advanced Document Processing
+- **Docling Integration** for enhanced document understanding
 - **Benefits**:
   - Multi-format support (PDF, DOCX, PPTX, XLSX, HTML, images, audio)
   - Advanced PDF understanding (layout analysis, table structure, reading order)
   - AI-ready structured output (optimized for LLM consumption)
   - OCR capabilities for scanned documents
   - Unified document representation across formats
-  - Export to multiple formats (Markdown, HTML, JSON)
-- **Use Cases**:
-  - Better text extraction from complex PDFs with tables and multi-column layouts
-  - Preserve document structure for context-aware TTS
-  - Extract structured data for future AI features
-  - Handle scanned documents with OCR
 - **Implementation Considerations**:
   - MIT license (commercial-friendly)
   - Requires Python 3.10+
-  - Active development (56.5k stars, enterprise backing)
-  - Some features in beta (structured extraction)
   - Test thoroughly with target document types before production use
 
 ### Collaboration
