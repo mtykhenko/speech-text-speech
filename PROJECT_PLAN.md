@@ -205,7 +205,8 @@ Python with FastAPI is the optimal choice because:
 - **Object Storage**: SeaweedFS (S3-compatible, Apache 2.0) for audio files
   - **Why SeaweedFS**: Replaced MinIO due to AGPLv3 license change. SeaweedFS offers true open-source (Apache 2.0), excellent performance for large audio files, simple architecture, and full S3 API compatibility
   - **Alternatives Considered**: Zenko CloudServer (Apache 2.0), Ceph RGW (complex), Garage (AGPLv3), RustFS (not production-ready)
-- **Cache**: Redis (for temporary files, session data)
+- **Temporary Storage**: Filesystem-based (for temporary files during processing)
+  - **Note**: Redis cache moved to production considerations (unnecessary for single-user, non-production use)
 
 #### Infrastructure
 - **Containerization**: Docker + Docker Compose
@@ -463,17 +464,16 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://user:pass@postgres:5432/stt_tts
-      - REDIS_URL=redis://redis:6379
       - S3_ENDPOINT=seaweedfs:8333
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
     volumes:
       - ./config:/app/config
       - ./models:/app/models
+      - ./tmp:/app/tmp
     depends_on:
       - postgres
-      - redis
-      - minio
+      - seaweedfs
 
   postgres:
     image: postgres:15-alpine
@@ -483,11 +483,6 @@ services:
       - POSTGRES_DB=stt_tts
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
 
   seaweedfs:
     image: chrislusf/seaweedfs:latest
@@ -520,7 +515,6 @@ services:
 
 volumes:
   postgres_data:
-  redis_data:
   seaweedfs_data:
   ollama_data:
 ```
@@ -593,9 +587,6 @@ S3_SECRET_KEY=any_secret_key
 # Database
 DATABASE_URL=postgresql://user:pass@postgres:5432/stt_tts
 
-# Redis
-REDIS_URL=redis://redis:6379
-
 # Application
 DEBUG=false
 LOG_LEVEL=info
@@ -615,13 +606,24 @@ MAX_FILE_SIZE=100MB
    - Add load balancing
    - Use CDN for static assets
 
-3. **Monitoring**:
+3. **Caching & Session Management** (Multi-user Production):
+   - **Add Redis** for distributed caching and session management
+   - **Use cases**:
+     - Session storage for multi-user authentication
+     - Caching API responses to reduce external API costs
+     - Rate limiting across multiple backend instances
+     - Temporary file metadata for distributed systems
+     - Job queue for background processing
+   - **Not needed for single-user development**: Filesystem-based temporary storage is sufficient
+   - **Configuration**: `REDIS_URL=redis://redis:6379`
+
+4. **Monitoring**:
    - Add Prometheus for metrics
    - Use Grafana for dashboards
    - Implement distributed tracing (Jaeger)
    - Set up log aggregation (ELK stack)
 
-4. **Backup**:
+5. **Backup**:
    - Regular database backups
    - Object storage replication
    - Configuration versioning
