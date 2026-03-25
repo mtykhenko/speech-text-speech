@@ -62,7 +62,7 @@ services:
       - S3_SECRET_KEY=${S3_SECRET_KEY}
     volumes:
       - seaweedfs_data:/data
-      - ./config/s3.json:/etc/seaweedfs/s3.json:ro
+      - ./storage/config/s3.json:/etc/seaweedfs/s3.json:ro
 
   nginx:
     build: ./nginx

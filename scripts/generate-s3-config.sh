@@ -7,10 +7,10 @@ if [ -f .env ]; then
 fi
 
 # Create config directory if it doesn't exist
-mkdir -p config
+mkdir -p storage/config
 
 # Generate S3 config file with credentials from environment
-cat > config/s3.json <<EOF
+cat > storage/config/s3.json <<EOF
 {
   "identities": [
     {
@@ -31,4 +31,4 @@ cat > config/s3.json <<EOF
 }
 EOF
 
-echo "✓ Generated config/s3.json with credentials from .env"
+echo "✓ Generated storage/config/s3.json with credentials from .env"

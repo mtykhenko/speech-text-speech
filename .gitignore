@@ -53,6 +53,7 @@ logs/
 storage/audio/*
 storage/voices/*
 storage/documents/*
+storage/config/s3.json
 !storage/audio/.gitkeep
 !storage/voices/.gitkeep
 !storage/documents/.gitkeep
