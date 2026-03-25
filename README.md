@@ -46,7 +46,13 @@ cp .env.example .env
 nano .env  # Edit with your API keys
 ```
 
-3. **Start the application**
+3. **Generate S3 configuration**
+```bash
+./scripts/generate-s3-config.sh
+```
+This script reads `S3_ACCESS_KEY` and `S3_SECRET_KEY` from your `.env` file and generates the SeaweedFS authentication config.
+
+4. **Start the application**
 ```bash
 docker-compose up -d
 ```
@@ -65,15 +71,11 @@ Create a `.env` file with your API credentials:
 ```bash
 # API Keys
 OPENAI_API_KEY=sk-...
-ELEVENLABS_API_KEY=...
-GOOGLE_CREDENTIALS_PATH=/path/to/credentials.json
-AZURE_SPEECH_KEY=...
-AZURE_SPEECH_REGION=...
 
 # Storage (SeaweedFS S3-compatible)
 S3_ENDPOINT=http://seaweedfs:8333
-S3_ACCESS_KEY=any_access_key
-S3_SECRET_KEY=any_secret_key
+S3_ACCESS_KEY=your_access_key_here
+S3_SECRET_KEY=your_secret_key_here
 
 # Database
 DATABASE_URL=postgresql://user:pass@postgres:5432/stt_tts
