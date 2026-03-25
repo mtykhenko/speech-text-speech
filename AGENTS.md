@@ -10,7 +10,7 @@ The backend serves as an **API orchestrator** that coordinates between the front
 
 #### IO-Intensive Operations (90%+ of workload)
 - **File Upload/Download**: Handling large audio files (up to 100MB)
-- **External API Calls**: Communication with OpenAI, Google Cloud, Azure, ElevenLabs, Ollama APIs
+- **External API Calls**: Communication with OpenAI API and Ollama (external service)
 - **Database Operations**: CRUD operations for voice profiles, transcriptions, configurations
 - **Object Storage**: Reading/writing audio files to SeaweedFS (S3-compatible storage)
 - **Network Streaming**: WebSocket connections for real-time transcription
@@ -32,10 +32,10 @@ The backend serves as an **API orchestrator** that coordinates between the front
 **Python Advantages for This Project**:
 
 1. **API Integration Ecosystem**
-   - Mature SDKs for OpenAI, Google Cloud, Azure, ElevenLabs
+   - Mature SDK for OpenAI
    - Extensive HTTP client libraries (aiohttp, httpx) for async API calls
    - Well-established patterns for API orchestration
-   - Rich ecosystem for external service integration
+   - Simple integration with Ollama (external service)
 
 2. **Audio File Handling**
    - Superior audio manipulation libraries (pydub, soundfile)
@@ -103,7 +103,7 @@ Python with FastAPI is the optimal choice because:
 - The backend serves as an **API orchestrator** with 90%+ IO-bound operations
 - FastAPI excels at handling concurrent external API calls efficiently
 - Superior ecosystem for audio file handling and document processing
-- Mature SDKs for all target ML service providers (OpenAI, Google, Azure, ElevenLabs, Ollama)
+- Mature SDK for OpenAI and simple HTTP integration with Ollama
 - Excellent type safety and automatic API documentation
 - Single-language stack reduces complexity and deployment overhead
 - Better long-term maintainability and feature extensibility
@@ -124,10 +124,10 @@ Python with FastAPI is the optimal choice because:
 │                    API Gateway (FastAPI)                     │
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │              Model Adapter Layer                      │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐           │  │
-│  │  │ OpenAI   │  │  Google  │  │  Azure   │  ...      │  │
-│  │  │ Adapter  │  │ Adapter  │  │ Adapter  │           │  │
-│  │  └──────────┘  └──────────┘  └──────────┘           │  │
+│  │  ┌──────────┐  ┌──────────┐                         │  │
+│  │  │ OpenAI   │  │  Ollama  │                         │  │
+│  │  │ Adapter  │  │ Adapter  │                         │  │
+│  │  └──────────┘  └──────────┘                         │  │
 │  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -161,12 +161,7 @@ Python with FastAPI is the optimal choice because:
   - Documents: python-docx, PyPDF2
 - **Model Integrations**:
   - OpenAI SDK
-  - Google Cloud SDK
-  - Azure SDK
-  - ElevenLabs SDK
-  - Transformers (Hugging Face)
-  - Faster-Whisper (local STT)
-  - Coqui TTS (local TTS)
+  - HTTP client for Ollama API (external service)
 
 ### Storage
 - **Database**: PostgreSQL (for metadata, configs, voice profiles)
@@ -178,7 +173,6 @@ Python with FastAPI is the optimal choice because:
 ### Infrastructure
 - **Containerization**: Docker + Docker Compose
 - **Reverse Proxy**: Nginx
-- **External Services**: Ollama (optional, for local TTS - run separately)
 
 ## Project Structure
 
@@ -236,11 +230,7 @@ speech-text-speech/
 │       │   ├── adapters/
 │       │   │   ├── base.py
 │       │   │   ├── openai_adapter.py
-│       │   │   ├── google_adapter.py
-│       │   │   ├── azure_adapter.py
-│       │   │   ├── elevenlabs_adapter.py
-│       │   │   ├── local_whisper_adapter.py
-│       │   │   └── local_tts_adapter.py
+│       │   │   └── ollama_adapter.py
 │       │   ├── stt_service.py
 │       │   ├── tts_service.py
 │       │   └── voice_service.py
@@ -269,13 +259,13 @@ This is a sandbox project designed for step-by-step evolution. Implement feature
 ### Phase 1: Foundation
 **Goal**: Set up basic infrastructure and core functionality
 
-- [ ] Initialize project structure
-- [ ] Set up Docker Compose with all services
-- [ ] Create database schema and migrations
-- [ ] Implement basic FastAPI backend with health checks
-- [ ] Create React frontend skeleton with routing
-- [ ] Set up SeaweedFS for object storage
-- [ ] Configure environment variables and secrets management
+- [x] Initialize project structure
+- [x] Set up Docker Compose with all services
+- [x] Create database schema and migrations
+- [x] Implement basic FastAPI backend with health checks
+- [x] Create React frontend skeleton with routing
+- [x] Set up SeaweedFS for object storage
+- [x] Configure environment variables and secrets management
 
 ### Phase 2: Speech-to-Text
 **Goal**: Implement STT functionality with multiple providers
@@ -293,8 +283,7 @@ This is a sandbox project designed for step-by-step evolution. Implement feature
 
 - [ ] Implement adapter pattern for TTS models
 - [ ] Add OpenAI TTS integration
-- [ ] Add ElevenLabs integration
-- [ ] Add local Coqui TTS integration
+- [ ] Add Ollama TTS integration (external service)
 - [ ] Create text input component with character limits
 - [ ] Implement document upload and parsing (TXT, PDF, DOCX)
 - [ ] Create audio player component
@@ -308,7 +297,7 @@ This is a sandbox project designed for step-by-step evolution. Implement feature
 - [ ] Implement voice sample recording in frontend
 - [ ] Create voice sample upload endpoint
 - [ ] Add voice profile CRUD operations
-- [ ] Integrate voice cloning with ElevenLabs
+- [ ] Integrate voice cloning with Ollama (if supported by external service)
 - [ ] Create voice profile management UI
 - [ ] Add voice selection to TTS workflow
 
@@ -419,49 +408,33 @@ stt:
       model: whisper-1
       language: auto
     
-    local-whisper:
-      type: local
-      model_path: ./models/whisper-large-v3
-      device: cuda  # or cpu
+    ollama-whisper:
+      type: external
+      endpoint: ${OLLAMA_ENDPOINT}
+      model: whisper
       language: auto
-    
-    google-stt:
-      type: api
-      credentials_path: ${GOOGLE_CREDENTIALS_PATH}
-      model: latest_long
-      language: en-US
 
 tts:
-  default: elevenlabs
+  default: openai-tts
   providers:
-    elevenlabs:
-      type: api
-      api_key: ${ELEVENLABS_API_KEY}
-      model: eleven_multilingual_v2
-      voice_id: default
-    
     openai-tts:
       type: api
       api_key: ${OPENAI_API_KEY}
       model: tts-1-hd
       voice: alloy
     
-    local-coqui:
-      type: local
-      model_path: ./models/tts_models--en--ljspeech--tacotron2-DDC
-      vocoder_path: ./models/vocoder_models--en--ljspeech--hifigan_v2
-    
     ollama-tts:
-      type: local
-      endpoint: http://ollama:11434
+      type: external
+      endpoint: ${OLLAMA_ENDPOINT}
       model: xtts-v2
 
 voice_cloning:
-  default: elevenlabs
+  default: ollama
   providers:
-    elevenlabs:
-      type: api
-      api_key: ${ELEVENLABS_API_KEY}
+    ollama:
+      type: external
+      endpoint: ${OLLAMA_ENDPOINT}
+      model: xtts-v2
       min_samples: 1
       max_samples: 25
 ```
@@ -490,9 +463,9 @@ voice_cloning:
 
 1. **Functionality**:
    - All core features working
-   - Support for at least 3 STT providers
-   - Support for at least 3 TTS providers
-   - Voice cloning functional
+   - Support for OpenAI and Ollama STT providers
+   - Support for OpenAI and Ollama TTS providers
+   - Voice cloning functional (via Ollama if supported)
 
 2. **Performance**:
    - STT latency < 5 seconds for 1-minute audio
@@ -592,11 +565,8 @@ Potential features to explore as the project evolves:
 ### Documentation
 - [OpenAI Whisper API](https://platform.openai.com/docs/guides/speech-to-text)
 - [OpenAI TTS API](https://platform.openai.com/docs/guides/text-to-speech)
-- [ElevenLabs API](https://docs.elevenlabs.io/)
-- [Google Cloud Speech](https://cloud.google.com/speech-to-text/docs)
-- [Azure Speech Services](https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/)
-- [Coqui TTS](https://github.com/coqui-ai/TTS)
-- [Faster Whisper](https://github.com/guillaumekln/faster-whisper)
+- [Ollama](https://ollama.ai/)
+- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
 
 ### Tools
 - [FastAPI](https://fastapi.tiangolo.com/)
