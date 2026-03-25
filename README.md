@@ -112,7 +112,7 @@ tts:
 
 The platform consists of:
 - **Frontend**: React 18+ with TypeScript
-- **Backend**: FastAPI (Python 3.11+) serving as an API orchestrator
+- **Backend**: FastAPI (Python 3.11+) with uv for dependency management, serving as an API orchestrator
 - **Database**: PostgreSQL for metadata and configurations
 - **Storage**: SeaweedFS (S3-compatible) for audio files
 - **Reverse Proxy**: Nginx

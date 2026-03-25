@@ -155,6 +155,7 @@ Python with FastAPI is the optimal choice because:
 
 ### Backend
 - **Framework**: FastAPI (Python 3.11+)
+- **Dependency Management**: uv (fast Python package installer and resolver)
 - **Async Support**: asyncio, aiohttp
 - **File Processing**: 
   - Audio: pydub, librosa
