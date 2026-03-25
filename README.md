@@ -36,7 +36,7 @@ A containerized web application for experimenting with various speech-to-text (S
 
 1. **Clone the repository**
 ```bash
-git clone <repo-url>
+git clone https://github.com/mtykhenko/speech-text-speech
 cd speech-text-speech
 ```
 
