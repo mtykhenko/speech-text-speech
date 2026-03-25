@@ -178,6 +178,7 @@ Python with FastAPI is the optimal choice because:
 ### Infrastructure
 - **Containerization**: Docker + Docker Compose
 - **Reverse Proxy**: Nginx
+- **External Services**: Ollama (optional, for local TTS - run separately)
 
 ## Project Structure
 

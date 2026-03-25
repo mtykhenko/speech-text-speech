@@ -27,6 +27,7 @@ services:
       - GOOGLE_CREDENTIALS_PATH=${GOOGLE_CREDENTIALS_PATH}
       - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
       - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
+      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT:-}
     volumes:
       - ./backend:/app
       - ./config:/app/config
@@ -68,15 +69,6 @@ services:
       - frontend
       - backend
 
-  # Optional: Local Ollama for TTS experiments
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-
 volumes:
   postgres_data:
   seaweedfs_data:
-  ollama_data:

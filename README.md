@@ -128,7 +128,44 @@ The application runs the following services:
 | Nginx | 80 | Reverse proxy |
 | PostgreSQL | 5432 | Database (internal) |
 | SeaweedFS | 9333, 8333, 8080, 18080 | Object storage |
-| Ollama (optional) | 11434 | Local TTS models |
+
+### Using External Ollama
+
+This project does not include Ollama in its Docker Compose setup. If you want to use Ollama for local TTS models, you need to run it separately:
+
+**Option 1: Run Ollama locally**
+```bash
+# Install Ollama (see https://ollama.ai)
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Start Ollama
+ollama serve
+
+# Pull a TTS model (example)
+ollama pull xtts-v2
+```
+
+**Option 2: Run Ollama in Docker**
+```bash
+docker run -d -p 11434:11434 --name ollama ollama/ollama:latest
+```
+
+**Configure the backend to use Ollama:**
+Add to your `.env` file:
+```bash
+OLLAMA_ENDPOINT=http://localhost:11434
+# Or if using Docker: http://host.docker.internal:11434
+```
+
+Update `config/models.yaml`:
+```yaml
+tts:
+  providers:
+    ollama-tts:
+      type: local
+      endpoint: ${OLLAMA_ENDPOINT}
+      model: xtts-v2
+```
 
 ## Usage
 
