@@ -280,14 +280,13 @@ This is a sandbox project designed for step-by-step evolution. Implement feature
 ### Phase 2: Speech-to-Text
 **Goal**: Implement STT functionality with multiple providers
 
-- [ ] Implement adapter pattern for STT models
-- [ ] Add OpenAI Whisper integration
-- [ ] Add local Whisper.cpp integration
-- [ ] Create file upload endpoint with validation
-- [ ] Implement live recording in frontend
-- [ ] Create transcription display component
-- [ ] Add export functionality (TXT, JSON, SRT)
-- [ ] Implement error handling and retry logic
+- [x] Implement adapter pattern for STT models
+- [x] Add OpenAI Whisper integration
+- [x] Create file upload endpoint with validation
+- [x] Implement live recording in frontend
+- [x] Create transcription display component
+- [x] Add export functionality (TXT, JSON, SRT)
+- [x] Implement error handling and retry logic
 
 ### Phase 3: Text-to-Speech
 **Goal**: Implement TTS functionality with multiple providers
