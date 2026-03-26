@@ -7,20 +7,19 @@ A containerized web application for experimenting with various speech-to-text (S
 ### 🎤 Speech-to-Text (STT)
 - **Live Recording**: Record audio directly in your browser with real-time transcription
 - **File Upload**: Support for MP3, WAV, M4A, FLAC audio formats
-- **Multiple Providers**: OpenAI Whisper, Google Cloud, Azure, local Whisper.cpp
+- **Multiple Providers**: OpenAI Whisper
 - **Export Options**: Download transcriptions as TXT, JSON, or SRT subtitle files
 
 ### 🔊 Text-to-Speech (TTS)
 - **Text Input**: Convert any text to natural-sounding speech
 - **Document Upload**: Process TXT, PDF, and DOCX files
 - **Multiple Voices**: Choose from various voice models and providers
-- **Multiple Providers**: OpenAI TTS, ElevenLabs, Azure, local Coqui TTS, Ollama
+- **Multiple Providers**: OpenAI TTS, Ollama
 
 ### 🎭 Voice Cloning
 - **Voice Samples**: Record or upload voice samples
 - **Profile Management**: Save and manage multiple voice profiles
 - **Custom Voices**: Use your cloned voices for TTS generation
-- **ElevenLabs Integration**: Professional voice cloning capabilities
 
 ### ⚙️ Model Management
 - **Easy Switching**: Change between different AI providers on the fly
@@ -100,12 +99,13 @@ stt:
       model: whisper-1
 
 tts:
-  default: elevenlabs
+  default: openai-tts
   providers:
-    elevenlabs:
+    openai-tts:
       type: api
-      api_key: ${ELEVENLABS_API_KEY}
-      model: eleven_multilingual_v2
+      api_key: ${OPENAI_API_KEY}
+      model: tts-1-hd
+      voice: alloy
 ```
 
 ## Architecture
@@ -224,19 +224,13 @@ docker-compose exec frontend npm test
 
 ### Speech-to-Text
 - ✅ OpenAI Whisper API
-- ✅ Google Cloud Speech-to-Text
-- ✅ Azure Speech Services
-- ✅ Local Whisper.cpp
 
 ### Text-to-Speech
 - ✅ OpenAI TTS API
-- ✅ ElevenLabs
-- ✅ Azure Speech Services
-- ✅ Local Coqui TTS
 - ✅ Ollama (local)
 
 ### Voice Cloning
-- ✅ ElevenLabs Voice Cloning
+- 🚧 Coming soon
 
 ## Troubleshooting
 
