@@ -172,7 +172,6 @@ Python with FastAPI is the optimal choice because:
 
 ### Infrastructure
 - **Containerization**: Docker + Docker Compose
-- **Reverse Proxy**: Nginx
 
 ## Project Structure
 
@@ -491,10 +490,20 @@ voice_cloning:
 - Implement authentication and authorization
 - Add rate limiting and DDoS protection
 
+### Reverse Proxy & Load Balancing
+- **Add Nginx or Traefik** as reverse proxy for production
+- **Benefits**:
+  - Single entry point (one port for all services)
+  - SSL/TLS termination (HTTPS)
+  - Path-based routing (/ → frontend, /api → backend)
+  - Rate limiting and request filtering
+  - Static asset caching
+  - Load balancing for horizontal scaling
+- **Configuration**: Remove direct port exposure from frontend/backend, route all traffic through reverse proxy
+
 ### Scalability
 - Use Kubernetes for orchestration
 - Implement horizontal pod autoscaling
-- Add load balancing
 - Use CDN for static assets
 
 ### Caching & Session Management

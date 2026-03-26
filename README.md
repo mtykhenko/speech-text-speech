@@ -115,7 +115,6 @@ The platform consists of:
 - **Backend**: FastAPI (Python 3.11+) with uv for dependency management, serving as an API orchestrator
 - **Database**: PostgreSQL for metadata and configurations
 - **Storage**: SeaweedFS (S3-compatible) for audio files
-- **Reverse Proxy**: Nginx
 
 All ML inference is handled by external services via API - no local GPU required.
 
@@ -127,7 +126,6 @@ The application runs the following services:
 |---------|------|-------------|
 | Frontend | 3000 | React web interface |
 | Backend | 8000 | FastAPI REST API |
-| Nginx | 80 | Reverse proxy |
 | PostgreSQL | 5432 | Database (internal) |
 | SeaweedFS | 9333, 8333, 8080, 18080 | Object storage |
 
@@ -202,7 +200,6 @@ tts:
 speech-text-speech/
 ├── frontend/          # React TypeScript application
 ├── backend/           # FastAPI Python application
-├── nginx/             # Nginx configuration
 ├── storage/           # Local storage directories
 ├── scripts/           # Utility scripts
 └── docker-compose.yml # Service orchestration

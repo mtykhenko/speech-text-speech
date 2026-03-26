@@ -58,14 +58,6 @@ services:
       - seaweedfs_data:/data
       - ./storage/config/s3.json:/etc/seaweedfs/s3.json:ro
 
-  nginx:
-    build: ./nginx
-    ports:
-      - "8888:80"
-    depends_on:
-      - frontend
-      - backend
-
 volumes:
   postgres_data:
   seaweedfs_data:
