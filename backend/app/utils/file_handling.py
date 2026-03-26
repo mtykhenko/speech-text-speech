@@ -135,3 +135,55 @@ def ensure_directory(directory: Path) -> Path:
     """
     directory.mkdir(parents=True, exist_ok=True)
     return directory
+
+
+async def save_audio_file(
+    audio_bytes: bytes,
+    file_id: str,
+    file_extension: str = "mp3"
+) -> Path:
+    """
+    Save audio file to storage.
+    
+    Args:
+        audio_bytes: Audio file content
+        file_id: Unique identifier for the file
+        file_extension: File extension (without dot)
+    
+    Returns:
+        Path to saved file
+    """
+    from ..config import settings
+    
+    # Use storage/audio directory
+    storage_dir = Path("storage/audio")
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    
+    filename = f"{file_id}.{file_extension}"
+    file_path = storage_dir / filename
+    
+    with open(file_path, 'wb') as f:
+        f.write(audio_bytes)
+    
+    return file_path
+
+
+def get_audio_file_path(file_id: str) -> Optional[Path]:
+    """
+    Get path to audio file by ID.
+    
+    Args:
+        file_id: File identifier
+    
+    Returns:
+        Path to file if exists, None otherwise
+    """
+    storage_dir = Path("storage/audio")
+    
+    # Try common audio extensions
+    for ext in ['mp3', 'wav', 'opus', 'flac', 'aac', 'ogg']:
+        file_path = storage_dir / f"{file_id}.{ext}"
+        if file_path.exists():
+            return file_path
+    
+    return None

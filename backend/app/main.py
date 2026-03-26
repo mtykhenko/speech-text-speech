@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.routers import stt
+from app.routers import stt, tts
 
 
 @asynccontextmanager
@@ -54,8 +54,8 @@ async def health_check():
 
 # Include routers
 app.include_router(stt.router, prefix="/api/v1/stt", tags=["Speech-to-Text"])
+app.include_router(tts.router, tags=["Text-to-Speech"])
 
 # TODO: Include remaining routers when implemented
-# app.include_router(tts.router, prefix="/api/v1/tts", tags=["Text-to-Speech"])
 # app.include_router(voice.router, prefix="/api/v1/voice", tags=["Voice Cloning"])
 # app.include_router(config.router, prefix="/api/v1/config", tags=["Configuration"])

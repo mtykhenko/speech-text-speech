@@ -29,6 +29,34 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+    
+    @property
+    def TTS_CONFIG(self) -> dict:
+        """Get TTS configuration for providers."""
+        return {
+            "default": "openai-tts",
+            "providers": {
+                "openai-tts": {
+                    "type": "api",
+                    "api_key": self.openai_api_key,
+                    "model": "tts-1-hd",
+                    "voice": "alloy",
+                    "speed": 1.0,
+                    "response_format": "mp3"
+                },
+                "ollama-tts": {
+                    "type": "external",
+                    "endpoint": "http://ollama:11434",
+                    "model": "xtts-v2",
+                    "timeout": 300
+                }
+            }
+        }
 
 
 settings = Settings()
+
+
+def get_settings() -> Settings:
+    """Get application settings instance."""
+    return settings

@@ -13,7 +13,7 @@ echo "PostgreSQL is ready!"
 # Run database migrations
 echo "Running database migrations..."
 cd /app
-.venv/bin/alembic upgrade head
+uv run alembic upgrade head
 
 echo "Starting application..."
 # Start the application
